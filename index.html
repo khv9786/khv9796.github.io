@@ -20,7 +20,20 @@
     </div>
 
     <div class="ui-layer">
-        <h1 class="glitch" data-text="MERRY_XMAS">MERRY_XMAS</h1>
+        <div class="header">
+            <h1 class="glitch" data-text="MERRY_XMAS">MERRY_XMAS</h1>
+              <div class="sound-control" id="soundToggle">
+                <span class="status-label">AUDIO:</span>
+                <span id="soundStatus" class="status-off">OFF</span>
+            <div class="speaker-icon"></div>
+        </div>
+    </div>
+
+    <audio id="bgm" loop>
+        <source src="https://www.chosic.com/wp-content/uploads/2021/11/Jingle-Bells-8-Bit.mp3" type="audio/mpeg">
+    </audio>
+
+
         <div class="footer-controls">
             <span>DRAG TO ROTATE (MOBILE OPTIMIZED)</span>
             <span> made by 김현빈</span>

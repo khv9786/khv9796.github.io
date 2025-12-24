@@ -172,3 +172,40 @@ function animateScene() {
     requestAnimationFrame(animateScene);
 }
 animateScene();
+
+
+/* =========================================
+   4. Audio Control System
+   ========================================= */
+const bgm = document.getElementById('bgm');
+const soundToggle = document.getElementById('soundToggle');
+const soundStatus = document.getElementById('soundStatus');
+let isMuted = true;
+
+// 오디오 볼륨 설정
+bgm.volume = 0.4;
+
+soundToggle.addEventListener('click', () => {
+    if (isMuted) {
+        // 재생 시도 (사용자 상호작용 후)
+        bgm.play().then(() => {
+            isMuted = false;
+            soundStatus.innerText = "ON";
+            soundStatus.className = "status-on";
+        }).catch(err => {
+            console.error("Audio play failed:", err);
+        });
+    } else {
+        bgm.pause();
+        isMuted = true;
+        soundStatus.innerText = "OFF";
+        soundStatus.className = "status-off";
+    }
+});
+
+// 모바일 환경에서 터치 시 오디오 컨텍스트 활성화를 위한 리스너
+document.addEventListener('touchstart', () => {
+    if (!isMuted && bgm.paused) {
+        bgm.play();
+    }
+}, { once: true });

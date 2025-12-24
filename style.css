@@ -2,7 +2,7 @@
     --bg-color: #000500;
     --term-green: #0f0;
     --term-dim: rgba(0, 255, 0, 0.15);
-    /* 최적화: 복셀 크기를 키워서 적은 개수로도 볼륨감을 줌 (16px -> 28px) */
+    /* 최적화: 복셀 크기 */
     --voxel-size: 28px; 
     --ornament-red: #ff3333;
 }
@@ -17,61 +17,83 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    perspective: 800px; /* 모바일에서 깊이감 조절 */
+    /* 모바일 3D 원근감 강화 */
+    perspective: 1200px; 
+    -webkit-perspective: 1200px;
     user-select: none;
-    touch-action: none; /* 모바일 스크롤 방지 */
+    touch-action: none;
 }
 
-/* --- Matrix Background (경량화) --- */
+/* --- Matrix Background --- */
 #matrix-bg {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 0;
-    opacity: 0.15; /* 강도 조절: 배경을 더 연하게 */
+    opacity: 0.15;
 }
 
-/* --- CRT Overlay (최적화) --- */
+/* --- CRT Overlay --- */
 .crt-overlay {
     position: fixed; inset: 0; z-index: 100; pointer-events: none;
-    /* 복잡한 그라디언트 대신 단순화 */
     background: repeating-linear-gradient(transparent 0px, transparent 2px, rgba(0,0,0,0.2) 3px);
-    box-shadow: inset 0 0 80px rgba(0,0,0,0.6); /* 비네팅 강도 감소 */
+    box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
 }
 
-/* --- 3D Scene --- */
+/* --- 3D Scene Container --- */
 .scene-container {
-    position: relative; width: 100%; height: 100%;
-    display: flex; justify-content: center; align-items: center;
-    transform-style: preserve-3d; z-index: 10;
+    position: relative; 
+    width: 100%; 
+    height: 100%;
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    /* 자식 요소의 3D 유지를 위한 필수 속성 */
+    transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    z-index: 10;
 }
 
+/* --- Tree Scene (위치 조정 핵심) --- */
 .scene {
     position: relative;
+    /* 트리 높이(14칸)의 절반인 7칸만큼 아래로 이동 (7 * 28px = 196px) */
+    /* 트리의 중심점을 화면 중앙으로 맞추기 위해 196px을 내립니다. */
+    top: 196px; 
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
+    /* 초기 각도 설정 */
     transform: rotateX(-15deg) rotateY(25deg);
+    will-change: transform;
 }
 
 .tree-pivot {
-    position: absolute; top: 0; left: 0;
+    position: absolute; 
+    top: 0; 
+    left: 0;
     transform-style: preserve-3d;
+    -webkit-transform-style: preserve-3d;
 }
 
 /* --- Optimized Voxel Cube --- */
 .cube {
     position: absolute;
-    width: var(--voxel-size); height: var(--voxel-size);
+    width: var(--voxel-size); 
+    height: var(--voxel-size);
     transform-style: preserve-3d;
-    /* will-change 제거 (모바일 메모리 절약) */
+    -webkit-transform-style: preserve-3d;
 }
 
 .face {
-    position: absolute; width: 100%; height: 100%;
-    /* 최적화 핵심: 무거운 box-shadow glow 제거 */
+    position: absolute; 
+    width: 100%; 
+    height: 100%;
     background: var(--term-dim); 
-    border: 1px solid rgba(0, 255, 0, 0.3); /* 테두리만 남김 */
-    backface-visibility: hidden; /* 성능을 위해 뒷면 숨김 */
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    /* 모바일 Safari 등에서 3D가 안 깨지게 visible로 설정하거나 최적화 */
+    backface-visibility: visible; 
+    -webkit-backface-visibility: visible;
 }
 
-/* 3D 구성 */
+/* 3D 큐브 면 구성 (정밀 계산) */
 .face.front  { transform: rotateY(  0deg) translateZ(calc(var(--voxel-size)/2)); }
 .face.back   { transform: rotateY(180deg) translateZ(calc(var(--voxel-size)/2)); }
 .face.right  { transform: rotateY( 90deg) translateZ(calc(var(--voxel-size)/2)); }
@@ -79,11 +101,10 @@ body {
 .face.top    { transform: rotateX( 90deg) translateZ(calc(var(--voxel-size)/2)); background: rgba(0, 255, 0, 0.25); }
 .face.bottom { transform: rotateX(-90deg) translateZ(calc(var(--voxel-size)/2)); }
 
-/* Types */
+/* Voxel Types */
 .cube.ornament .face {
     background: rgba(255, 50, 50, 0.4);
     border-color: var(--ornament-red);
-    /* 애니메이션도 가볍게 (opacity만 조절) */
     animation: pulseLight 2s infinite alternate;
 }
 .cube.trunk .face {
@@ -97,18 +118,65 @@ body {
 
 @keyframes pulseLight { from { opacity: 0.5; } to { opacity: 1; } }
 
-/* --- UI --- */
+/* --- UI 레이어 (모바일 최적화) --- */
 .ui-layer {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 50;
     display: flex; flex-direction: column; justify-content: space-between;
-    padding: 30px; box-sizing: border-box;
+    padding: 20px; box-sizing: border-box;
 }
 h1.glitch {
-    margin: 0; font-size: 2.5rem; text-shadow: 0 0 5px var(--term-green);
+    margin: 0; 
+    font-size: 2rem; /* 모바일 대응 크기 축소 */
+    text-shadow: 0 0 5px var(--term-green);
+    text-align: center;
 }
 .footer-controls {
-    display: flex; justify-content: space-between;
-    font-size: 0.9rem; opacity: 0.7;
-    border-top: 1px solid rgba(0,255,0,0.3); padding-top: 10px;
+    display: flex; 
+    justify-content: space-between;
+    font-size: 0.8rem; 
+    opacity: 0.7;
+    border-top: 1px solid rgba(0,255,0,0.3); 
+    padding-top: 10px;
+}
+
+/* 사운드 컨트롤 스타일 추가 */
+.sound-control {
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    pointer-events: all; /* 클릭 가능하도록 설정 */
+    font-size: 1.2rem;
+    padding: 5px 10px;
+    border: 1px solid rgba(0, 255, 0, 0.2);
+    background: rgba(0, 40, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.sound-control:hover {
+    background: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 10px var(--term-dim);
+}
+
+#soundStatus.status-on {
+    color: var(--term-green);
+    text-shadow: 0 0 8px var(--term-green);
+}
+
+#soundStatus.status-off {
+    color: #444;
+}
+
+/* 스피커 아이콘 (CSS로 간단히 구현) */
+.speaker-icon::before {
+    content: '🔊';
+    font-size: 1rem;
+    filter: sepia(1) saturate(5) hue-rotate(70deg); /* 녹색 틴트 효과 */
+}
+
+.status-off + .speaker-icon::before {
+    content: '🔈';
+    opacity: 0.5;
 }
